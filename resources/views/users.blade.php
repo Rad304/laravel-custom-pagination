@@ -20,7 +20,7 @@
         </tr>
       </thead>
       <tbody>
-        @foreach ($users as $user)
+        @foreach ($items as $user)
             <tr>
                 <th scope="row">{{ $user->id }}</th>
                 <td>{{ $user->name }}</td>
@@ -30,8 +30,8 @@
         @endforeach
       </tbody>
     </table>
-    @include('_custom-pagination', ['paginator' => $users])
-    {{ $users->toJson() }}
+    @include('_custom-pagination', ['paginator' => $items])
+    {{ $items->toJson() }}
   </div>
 </body>
 </html>
