@@ -34,27 +34,36 @@
         <label for="sort" class="col-2 col-form-label">Sort</label>
         <div class="col-4">
           <select class="form-control" id="sort" name="sort">
-            <option value=">">asc</option>
-            <option value="<">desc</option>
+            <option value=">" {{ ( isset($cache['sort']) && $cache['sort'] == '>') ? 'selected' : '' }}>asc</option>
+            <option value="<" {{ ( isset($cache['sort']) && $cache['sort'] == '<') ? 'selected' : '' }}>desc</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group row">
+        <label for="cursor" class="col-2 col-form-label">Cursor</label>
+        <div class="col-4">
+          <select class="form-control" id="cursor" name="cursor">
+            <option value="id" {{ ( isset($cache['cursor']) && $cache['cursor'] == 'id') ? 'selected' : '' }}>ID</option>
+            <option value="dob"{{ ( isset($cache['cursor']) && $cache['cursor'] == 'dob') ? 'selected' : '' }}>Date of birth</option>
           </select>
         </div>
       </div>
       <div class="form-group row">
         <label for="perPage" class="col-2 col-form-label">Elements per page</label>
         <div class="col-4">
-          <input class="form-control" type="number" value="10" id="perPage" name="perPage">
+          <input class="form-control" type="number" value="{{ isset($cache['perPage']) ? $cache['perPage'] : '' }}" id="perPage" name="perPage">
         </div>
       </div>
       <div class="form-group row">
         <label for="example-date-input" class="col-2 col-form-label">From</label>
         <div class="col-10">
-          <input class="form-control" type="date" id="example-date-input" name="from">
+          <input class="form-control" type="date" value="{{ isset($cache['from']) ? $cache['from'] : '' }}" id="example-date-input" name="from">
         </div>
       </div>
       <div class="form-group row">
         <label for="example-date-input" class="col-2 col-form-label">To</label>
         <div class="col-10">
-          <input class="form-control" type="date" id="example-date-input" name="to">
+          <input class="form-control" type="date" value="{{ isset($cache['to']) ? $cache['to'] : '' }}" id="example-date-input" name="to">
         </div>
       </div>
       <div class="form-group">

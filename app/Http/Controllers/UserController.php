@@ -16,21 +16,22 @@ class UserController extends Controller
     {
 
         // Form field names
-        $fields = ['sort', 'perPage', 'from', 'to']; 
+        $fields = ['sort', 'perPage', 'from', 'to', 'cursor']; 
 
         // Cache field values
         $cache = init_paginator_cache($fields);
         
-
-        $columns = ['id','name','email', 'dob']; 
-
-        // field to use as a cursor (Database Table field)
-        $cursor = ['dob']; 
-
         $sort = isset($cache['sort']) ? $cache['sort'] : '>';
         $perPage = isset($cache['perPage']) ? $cache['perPage'] : 10;
         $from = isset($cache['from']) ? $cache['from'] : null;
         $to = isset($cache['to']) ? $cache['to'] : null;
+        $cursorr = isset($cache['cursor']) ? $cache['cursor'] : 'id';
+        //dd($cursorr);
+        $columns = ['id','name','email', 'dob']; 
+
+        // field to use as a cursor (Database Table field)
+        $cursor = $cursorr; 
+
 
         //Get Users Where Birth Date of Birth is between '1968-02-07 13:45:00' and '1970-02-07 21:45:00' 
         $query = User::select($columns)

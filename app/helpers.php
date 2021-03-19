@@ -44,10 +44,14 @@ if(!function_exists('custom_paginator')){
     */
     function custom_paginator($query, $cursor = null, $cache = null, $sort = '>', $perPage = 10, $seekable = true)
     {
+        
         if($cache == [] || $cache == null){
             $cache['sort'] = '>';
             $cache['perPage'] = 10;
         }
+        if($cursor == null)
+            $cursor = 'id';
+        //dd($cursor);
             //dd("hmmm cache problem");
         $state_array = null;
         // Decode State
@@ -60,13 +64,9 @@ if(!function_exists('custom_paginator')){
 
         // Cursor is used to navigate to the next or previous 'pages'
         $newCursor = null;
-        // Prepare Cursors
-        foreach($cursor as $parameter){
-            //dd($parameter);
-            if($state_array['cursor'][$parameter]){
-                //Add parameter to the cursor array
-                $newCursor[$parameter] = $state_array['cursor'][$parameter];
-            }
+        if($state_array['cursor'][$cursor]){
+            //Add parameter to the cursor array
+            $newCursor[$cursor] = $state_array['cursor'][$cursor];
         }
         
         //dd($newCursor);
@@ -77,14 +77,11 @@ if(!function_exists('custom_paginator')){
         $paginator = $query->lampager()
                     ->limit($perPage); // Set Number of elements Per Page (default=10)
         
-        // Sort Options
-        foreach($cursor as $parameter){
-            if($sort == '>' || $sort == null)
-                $paginator = $paginator->orderBy($parameter);
-            else
-                $paginator = $paginator->orderByDesc($parameter);
-        }
-
+        if($sort == '>' || $sort == null)
+            $paginator = $paginator->orderBy($cursor);
+        else
+            $paginator = $paginator->orderByDesc($cursor);
+        
         // Get 'Previous Cursor' to be able to navigate backwards
         if($seekable)
             $paginator = $paginator->seekable(); 
