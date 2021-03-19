@@ -6,6 +6,7 @@
    
     <!-- Styles -->
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
+    <title>Users List</title>
 </head>
 <body>
   <div class="container">
@@ -62,7 +63,7 @@
         </tr>
       </thead>
       <tbody>
-        @foreach ($items as $user)
+        @foreach ($items->records as $user)
             <tr>
                 <th scope="row">{{ $user->id }}</th>
                 <td>{{ $user->name }}</td>

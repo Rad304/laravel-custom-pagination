@@ -20,12 +20,13 @@ class UserController extends Controller
 
         //Get Users Where Birth Date of Birth is between '1968-02-07 13:45:00' and '1970-02-07 21:45:00' 
         $query = User::select($columns);
-                    //->whereBetween('dob', ['1968-02-07 13:45:00', '1970-02-07 21:45:00'])
+                    //->whereBetween('dob', ['1968-02-07 13:45:00', '1970-02-07 21:45:00']);
                     //->where('email', 'like', '%example.net%');
         
         // Fonction 
-        $result = custom_paginator($query, $cursor, $sort = '>', $perPage = 5);
-
+        $result = custom_paginator($query, $cursor, $cache = null, $sort = '>', $perPage = 10);
+        //dd($result,json_encode($result), base64_encode(json_encode($result)));
+        //$result = json_decode(json_encode($result), true);
         //dd($prev_btn_router_options, $next_btn_router_options, $route);
         // Return paginator
         //dd($result);
