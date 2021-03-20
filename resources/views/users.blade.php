@@ -87,6 +87,7 @@
           <th scope="col">Name</th>
           <th scope="col">Email</th>
           <th scope="col">Date Of Birth</th>
+          <th scope="col"></th>
         </tr>
       </thead>
       <tbody>
@@ -96,6 +97,7 @@
                 <td>{{ $user->name }}</td>
                 <td>{{ $user->email }}</td>
                 <td>{{ $user->dob }}</td>
+                <td><a href="{{ route('users.edit', [$user->id]) }}" class="btn btn-secondary">Edit</a></td>
             </tr>
         @endforeach
       </tbody>
