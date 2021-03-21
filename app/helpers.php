@@ -12,6 +12,11 @@ if(!function_exists('init_paginator_cache')){
         //init cache
         $cache = count($fields) > 0 ? [] : null;
         
+        if($cache == [] || $cache == null){
+            $cache['sort'] = '>'; // ASC as a default value
+            $cache['perPage'] = 10; // number of elements per 'page'
+        }
+
         // If form is submitted...
         // Cache Form values
         if (request()->isMethod('POST')) {
@@ -65,11 +70,6 @@ if(!function_exists('custom_paginator')){
         
         if($perPage == null)
             $perPage = 10;
-        
-        if($cache == [] || $cache == null){
-            $cache['sort'] = $sort;
-            $cache['perPage'] = $perPage;
-        }
 
         /*
         ** Extract Cursor from the State route parameter
