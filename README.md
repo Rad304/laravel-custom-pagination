@@ -1,62 +1,440 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400"></a></p>
-
 <p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+<img width="320" alt="lampager-laravel" src="https://user-images.githubusercontent.com/1351893/31755018-9ab0c8ae-b4d6-11e7-9310-dbc372998ee4.png">
+</p>
+<p align="center">
+<a href="https://travis-ci.com/lampager/lampager-laravel"><img src="https://travis-ci.com/lampager/lampager-laravel.svg?branch=master" alt="Build Status"></a>
+<a href="https://coveralls.io/github/lampager/lampager-laravel?branch=master"><img src="https://coveralls.io/repos/github/lampager/lampager-laravel/badge.svg?branch=master" alt="Coverage Status"></a>
+<a href="https://scrutinizer-ci.com/g/lampager/lampager-laravel/?branch=master"><img src="https://scrutinizer-ci.com/g/lampager/lampager-laravel/badges/quality-score.png?b=master" alt="Scrutinizer Code Quality"></a>
 </p>
 
-## About Laravel
+# Lampager for Laravel
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Rapid pagination without using OFFSET
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Requirements
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- PHP: ^7.1
+- Laravel: ^5.5 || ^6.0 || ^7.0 || ^8.0
+- [lampager/lampager](https://github.com/lampager/lampager): ^0.4
 
-## Learning Laravel
+## Installing
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+```bash
+composer require lampager/lampager-laravel
+```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 1500 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Basic Usage 1
 
-## Laravel Sponsors
+Register service provider.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+`config/app.php`:
 
-### Premium Partners
+```php
+        /*
+         * Package Service Providers...
+         */
+        Lampager\Laravel\MacroServiceProvider::class,
+```
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[Curotec](https://www.curotec.com/)**
-- **[OP.GG](https://op.gg)**
+## Simple pagination for users table
 
-## Contributing
+### Copy helper functions from ```App\helpers.php``` to your project 
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### Copy pagination template from ``` resources\views\_custom-pagination.blade.php``` to your project
 
-## Code of Conduct
+### Create routes
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+We need two routes, POST method to submit form values and GET method to show results and to navigate between 'pages'
+direction indicate the direction of navigation 'next' or 'prev' (previous)
+state is a base64 encoded string that contains:
+- Cursor (Used to to navigate between 'pages')
+- Cache (Array which holds form values between 'pages')
 
-## Security Vulnerabilities
+```php
+Route::post('/users', [UserController::class, 'index'])->name('users.list');
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+// Must be in here, order is important!
+Route::get('/users/{direction?}/{state?}', [UserController::class, 'index'])->name('users.list');
+```
 
-## License
+init_paginator_cache() takes the list of form field names and it creates an array which contains field as a name and it's value as a value, this cache is used to hold form values between pages!!!
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```php
+class UserController extends Controller
+{
+    ...
+    public function index()
+    {
+        // Form field names
+        $formFields = ['sort', 'perPage', 'from', 'to', 'cursor']; 
+
+        // Cache Form values
+        $cache = init_paginator_cache($formFields);
+        
+        // Extract values from the cache 
+        $sort = isset($cache['sort']) ? $cache['sort'] : '>';
+        $perPage = isset($cache['perPage']) ? $cache['perPage'] : 10;
+        $from = isset($cache['from']) ? $cache['from'] : null;
+        $to = isset($cache['to']) ? $cache['to'] : null;
+        $field = isset($cache['cursor']) ? $cache['cursor'] : 'id';
+
+        // Columns
+        $columns = ['id','name','email', 'dob']; 
+
+        // field to use as a cursor
+        $cursor = $field; 
+
+        /*
+        ** Query
+        */
+
+        $query = User::select($columns);
+                   // ->whereBetween('dob', [$from, $to]);
+                   // ->where('email', 'like', '%example.net%');
+       
+        //Get Users Where Birth Date of Birth is between $from and $to 
+        if($cursor == 'dob' && $from != null && $to != null)
+            $query = $query->whereBetween('dob', [$from, $to]);
+        
+
+        // Call our custom paginator here...
+        $result = custom_paginator($query, $cursor, $cache, $sort, $perPage);
+        
+        // return the results
+        return view('users')->with($result);
+    }
+    ...
+```
+
+$result is an array returned by custom paginator and contains 5 entries
+- 'items': Lampager paginator object which contains Model objects as well as other informations such as the cursor and some booleans to check if in the current 'state' we can navigate to the previous or next page... in our example we use to iterate over it to get the list of users (in the page) also to encode other informations in the 'state' 
+- 'route': contains the current route name.
+- 'prev_btn_router_options': contains route parameters for the 'previous' button
+- 'next_btn_router_options': contains route parameters for the 'next' button
+- 'cache': contains form values...
+
+## Render the pagination
+
+in the view to have to add
+
+```php
+@include('_custom-pagination', ['paginator' => $items])
+```
+
+which includes the custom pagination template with the $items as a parameter 
+```important: Remember to give it 'paginator' as a name```
+
+## Basic Usage 2
+
+Register service provider.
+
+`config/app.php`:
+
+```php
+        /*
+         * Package Service Providers...
+         */
+        Lampager\Laravel\MacroServiceProvider::class,
+```
+
+Then you can chain `->lampager()` method from Query Builder, Eloquent Builder and Relation.
+
+```php
+$cursor = [
+    'id' => 3,
+    'created_at' => '2017-01-10 00:00:00',
+    'updated_at' => '2017-01-20 00:00:00',
+];
+
+$result = App\Post::whereUserId(1)
+    ->lampager()
+    ->forward()
+    ->limit(5)
+    ->orderByDesc('updated_at') // ORDER BY `updated_at` DESC, `created_at` DESC, `id` DESC
+    ->orderByDesc('created_at')
+    ->orderByDesc('id')
+    ->seekable()
+    ->paginate($cursor)
+    ->toJson(JSON_PRETTY_PRINT);
+```
+
+It will run the optimized query.
+
+
+```sql
+(
+
+    SELECT * FROM `posts`
+    WHERE `user_id` = 1
+    AND (
+        `updated_at` = '2017-01-20 00:00:00' AND `created_at` = '2017-01-10 00:00:00' AND `id` > 3
+        OR
+        `updated_at` = '2017-01-20 00:00:00' AND `created_at` > '2017-01-10 00:00:00'
+        OR
+        `updated_at` > '2017-01-20 00:00:00'
+    )
+    ORDER BY `updated_at` ASC, `created_at` ASC, `id` ASC
+    LIMIT 1
+
+) UNION ALL (
+
+    SELECT * FROM `posts`
+    WHERE `user_id` = 1
+    AND (
+        `updated_at` = '2017-01-20 00:00:00' AND `created_at` = '2017-01-10 00:00:00' AND `id` <= 3
+        OR
+        `updated_at` = '2017-01-20 00:00:00' AND `created_at` < '2017-01-10 00:00:00'
+        OR
+        `updated_at` < '2017-01-20 00:00:00'
+    )
+    ORDER BY `updated_at` DESC, `created_at` DESC, `id` DESC
+    LIMIT 6
+
+)
+```
+
+And you'll get
+
+
+```json
+{
+  "records": [
+    {
+      "id": 3,
+      "user_id": 1,
+      "text": "foo",
+      "created_at": "2017-01-10 00:00:00",
+      "updated_at": "2017-01-20 00:00:00"
+    },
+    {
+      "id": 5,
+      "user_id": 1,
+      "text": "bar",
+      "created_at": "2017-01-05 00:00:00",
+      "updated_at": "2017-01-20 00:00:00"
+    },
+    {
+      "id": 4,
+      "user_id": 1,
+      "text": "baz",
+      "created_at": "2017-01-05 00:00:00",
+      "updated_at": "2017-01-20 00:00:00"
+    },
+    {
+      "id": 2,
+      "user_id": 1,
+      "text": "qux",
+      "created_at": "2017-01-17 00:00:00",
+      "updated_at": "2017-01-18 00:00:00"
+    },
+    {
+      "id": 1,
+      "user_id": 1,
+      "text": "quux",
+      "created_at": "2017-01-16 00:00:00",
+      "updated_at": "2017-01-18 00:00:00"
+    }
+  ],
+  "has_previous": false,
+  "previous_cursor": null,
+  "has_next": true,
+  "next_cursor": {
+    "updated_at": "2017-01-18 00:00:00",
+    "created_at": "2017-01-14 00:00:00",
+    "id": 6
+  }
+}
+```
+
+## Resource Collection
+
+Lampager supports Laravel's API Resources.
+
+- [Eloquent: API Resources - Laravel - The PHP Framework For Web Artisans](https://laravel.com/docs/6.x/eloquent-resources)
+
+Use helper traits on Resource and ResourceCollection.
+
+```php
+use Illuminate\Http\Resources\Json\JsonResource;
+use Lampager\Laravel\LampagerResourceTrait;
+
+class PostResource extends JsonResource
+{
+    use LampagerResourceTrait;
+}
+```
+
+```php
+use Illuminate\Http\Resources\Json\ResourceCollection;
+use Lampager\Laravel\LampagerResourceCollectionTrait;
+
+class PostResourceCollection extends ResourceCollection
+{
+    use LampagerResourceCollectionTrait;
+}
+```
+
+```php
+$posts = App\Post::lampager()
+    ->orderByDesc('id')
+    ->paginate();
+
+return new PostResourceCollection($posts);
+```
+
+```json5
+{
+  "data": [/* ... */],
+  "has_previous": false,
+  "previous_cursor": null,
+  "has_next": true,
+  "next_cursor": {/* ... */}
+}
+```
+
+## Classes
+
+Note: See also [lampager/lampager](https://github.com/lampager/lampager).
+
+| Name | Type | Parent Class | Description |
+|:---|:---|:---|:---|
+| Lampager\\Laravel\\`Paginator` | Class | Lampager\\`Paginator` | Fluent factory implementation for Laravel |
+| Lampager\\Laravel\\`Processor` | Class | Lampager\\`AbstractProcessor` | Processor implementation for Laravel |
+| Lampager\\Laravel\\`PaginationResult` | Class | Lampager\\`PaginationResult` | PaginationResult implementation for Laravel |
+| Lampager\\Laravel\\`MacroServiceProvider` | Class | Illuminate\\Support\\`ServiceProvider` | Enable macros chainable from QueryBuilder, ElqouentBuilder and Relation |
+| Lampager\\Laravel\\`LampagerResourceTrait` | Trait | | Support for Laravel JsonResource |
+| Lampager\\Laravel\\`LampagerResourceCollectionTrait` | Trait | | Support for Laravel ResourceCollection |
+
+`Paginator`, `Processor` and `PaginationResult` are macroable.
+
+## API
+
+Note: See also [lampager/lampager](https://github.com/lampager/lampager).
+
+### Paginator::__construct()<br>Paginator::create()
+
+Create a new paginator instance.  
+If you use Laravel macros, however, you don't need to directly instantiate.
+
+```php
+static Paginator create(QueryBuilder|EloquentBuilder|Relation $builder): static
+Paginator::__construct(QueryBuilder|EloquentBuilder|Relation $builder)
+```
+
+- `QueryBuilder` means `\Illuminate\Database\Query\Builder`
+- `EloquentBuilder` means `\Illuminate\Database\Eloquent\Builder`
+- `Relation` means `\Illuminate\Database\Eloquent\Relation`
+
+### Paginator::transform()
+
+Transform Lampager Query into Illuminate builder.
+
+```php
+Paginator::transform(Query $query): QueryBuilder|EloquentBuilder|Relation
+```
+
+### Paginator::build()
+
+Perform configure + transform.
+
+```php
+Paginator::build(\Lampager\Contracts\Cursor|array $cursor = []): QueryBuilder|EloquentBuilder|Relation
+```
+
+### Paginator::paginate()
+
+Perform configure + transform + process.
+
+```php
+Paginator::paginate(\Lampager\Contracts\Cursor|array $cursor = []): \Lampager\Laravel\PaginationResult
+```
+
+#### Arguments
+
+- **`(mixed)`** __*$cursor*__<br> An associative array that contains `$column => $value` or an object that implements `\Lampager\Contracts\Cursor`. It must be **all-or-nothing**.
+  - For initial page, omit this parameter or pass empty array.
+  - For subsequent pages, pass all parameters. Partial parameters are not allowd.
+
+#### Return Value
+
+e.g. 
+
+(Default format when using `\Illuminate\Database\Eloquent\Builder`)
+
+```php
+object(Lampager\Laravel\PaginationResult)#1 (5) {
+  ["records"]=>
+  object(Illuminate\Database\Eloquent\Collection)#2 (1) {
+    ["items":protected]=>
+    array(5) {
+      [0]=>
+      object(App\Post)#2 (26) { ... }
+      [1]=>
+      object(App\Post)#3 (26) { ... }
+      [2]=>
+      object(App\Post)#4 (26) { ... }
+      [3]=>
+      object(App\Post)#5 (26) { ... }
+      [4]=>
+      object(App\Post)#6 (26) { ... }
+    }
+  }
+  ["hasPrevious"]=>
+  bool(false)
+  ["previousCursor"]=>
+  NULL
+  ["hasNext"]=>
+  bool(true)
+  ["nextCursor"]=>
+  array(2) {
+    ["updated_at"]=>
+    string(19) "2017-01-18 00:00:00"
+    ["created_at"]=>
+    string(19) "2017-01-14 00:00:00"
+    ["id"]=>
+    int(6)
+  }
+}
+```
+
+### Paginator::useFormatter()<br>Paginator::restoreFormatter()<br>Paginator::process()
+
+Invoke Processor methods.
+
+```php
+Paginator::useFormatter(Formatter|callable $formatter): $this
+Paginator::restoreFormatter(): $this
+Paginator::process(\Lampager\Query $query, \Illuminate\Support\Collection|\Illuminate\Database\Eloquent\Collection $rows): \Lampager\Laravel\PaginationResult
+```
+
+### PaginationResult::toArray()<br>PaginationResult::jsonSerialize()
+
+Convert the object into array.
+
+**IMPORTANT: `camelCase` properties are converted into `snake_case` form.**
+
+```php
+PaginationResult::toArray(): array
+PaginationResult::jsonSerialize(): array
+```
+
+### PaginationResult::__call()
+
+Call macro or Collection methods.
+
+```php
+PaginationResult::__call(string $name, array $args): mixed
+```
+
+e.g.
+
+```php
+PaginationResult::macro('foo', function () {
+    return ...;
+});
+$foo = $result->foo();
+```
+
+```php
+$first = $result->first();
+```

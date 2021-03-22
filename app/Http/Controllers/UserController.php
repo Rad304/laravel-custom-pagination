@@ -14,7 +14,6 @@ class UserController extends Controller
      */
     public function index()
     {
-        var_dump(request('test_multiple'));
         // Form field names
         $formFields = ['sort', 'perPage', 'from', 'to', 'cursor']; 
 
@@ -38,12 +37,11 @@ class UserController extends Controller
         ** Query
         */
 
-        //Get Users Where Birth Date of Birth is between '1968-02-07 13:45:00' and '1970-02-07 21:45:00' 
         $query = User::select($columns);
                    // ->whereBetween('dob', [$from, $to]);
                    // ->where('email', 'like', '%example.net%');
        
-        // Test
+        //Get Users Where Birth Date of Birth is between $from and $to 
         if($cursor == 'dob' && $from != null && $to != null)
             $query = $query->whereBetween('dob', [$from, $to]);
         
