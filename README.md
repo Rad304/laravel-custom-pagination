@@ -45,10 +45,10 @@ Register service provider.
 ### Create routes
 
 We need two routes, POST method to submit form values and GET method to show results and to navigate between 'pages'
-direction indicate the direction of navigation 'next' or 'prev' (previous)
-state is a base64 encoded string that contains:
-- Cursor (Used to to navigate between 'pages')
-- Cache (Array which holds form values between 'pages')
+- direction indicate the direction of navigation 'next' or 'prev' (previous)
+- state is a base64 encoded string that contains:
+    - Cursor (Used to to navigate between 'pages')
+    - Cache (Array which holds form values between 'pages')
 
 ```php
 Route::post('/users', [UserController::class, 'index'])->name('users.list');
