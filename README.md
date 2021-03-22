@@ -115,14 +115,14 @@ $result is an array returned by custom paginator and contains 5 entries
 
 ## Render the pagination
 
-in the view to have to add
+in the view add
 
 ```php
 @include('_custom-pagination', ['paginator' => $items])
 ```
 
-which includes the custom pagination template with the $items as a parameter 
-```important: Remember to give it 'paginator' as a name```
+this will include the custom pagination template with the $items object as a parameter 
+```Giving 'paginator' as a name is important here```
 
 ## Basic Usage 2
 
